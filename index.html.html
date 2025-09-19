@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Oyun Kütüphanem - Yönetilebilir Demo</title>
+  <meta name="description" content="Ücretsiz / açık kaynak oyunları listele, video, resim, sistem gereksinimleri ve indirme linkleri göster." />
+  <style>
+    :root{--bg:#071021;--card:#0b1220;--accent:#41efff;--muted:#93a9be}
+    *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#04060a,#071021);color:#e6eef8}
+    .wrap{max-width:1100px;margin:24px auto;padding:18px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    h1{margin:0;font-size:22px}
+    .muted{color:var(--muted);font-size:13px}
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:18px}
+    .list{display:grid;gap:12px}
+    .card{background:var(--card);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+    .thumb{width:100%;height:160px;border-radius:8px;background-size:cover;background-position:center;margin-bottom:10px}
+    .title{font-weight:800;margin:0 0 6px}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{padding:8px 10px;border-radius:8px;border:0;cursor:pointer;font-weight:800}
+    .btn-primary{background:var(--accent);color:#002029}
+    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.05);color:var(--muted)}
+    form{display:grid;gap:8px}
+    input,textarea,select{background:#071226;border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:8px;color:inherit}
+    label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+    .small{font-size:12px;color:var(--muted)}
+    .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .badge{font-weight:800;padding:6px;border-radius:8px;background:#0b2630;color:#bff7ff}
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
+    .video-wrap{position:relative;padding-top:56.25%;border-radius:8px;overflow:hidden;background:#000}
+    .video-wrap iframe{position:absolute;left:0;top:0;width:100%;height:100%}
+    pre{white-space:pre-wrap;font-size:13px;color:var(--muted);background:rgba(255,255,255,0.02);padding:8px;border-radius:8px}
+    @media(max-width:980px){.grid{grid-template-columns:1fr}.thumb{height:180px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Oyun Kütüphanem</h1>
+        <div class="muted">Her oyun için video, fotoğraf, sistem gereksinimleri ve indirme linki gösterir. (Yasal içerik ekle.)</div>
+      </div>
+      <div class="controls">
+        <button class="btn btn-primary" id="exportHtml">Statik HTML indir</button>
+        <button class="btn btn-ghost" id="exportJson">JSON dışa aktar</button>
+        <button class="btn btn-ghost" id="clearAll">Tümünü temizle</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- sol: oyun listesi -->
+      <main>
+        <section class="list" id="gameList">
+          <!-- Oyun kartları buraya JS ile eklenecek -->
+        </section>
+        <div style="margin-top:12px;color:var(--muted);font-size:13px">Not: Bu demo dosyaları barındırmaz — indirme linkleri kullanıcının verdiği URL'lere yönlendirir. Yasadışı içerik ekleme; telif ihlali riski aldırmayız.</div>
+      </main>
+
+      <!-- sağ: admin form -->
+      <aside>
+        <div class="card">
+          <h3>Yeni Oyun Ekle</h3>
+          <form id="gameForm">
+            <div>
+              <label>Oyun Başlığı</label>
+              <input id="title" placeholder="Örn: SuperTuxKart" required />
+            </div>
+            <div>
+              <label>Kısa Açıklama</label>
+              <textarea id="desc" rows="3" placeholder="Kısa tanım..." required></textarea>
+            </div>
+            <div>
+              <label>Kapak / Küçük Resim URL (jpg/png)</label>
+              <input id="image" placeholder="https://.../cover.jpg" />
+            </div>
+            <div>
+              <label>Video (YouTube URL veya gömülecek link)</label>
+              <input id="video" placeholder="https://www.youtube.com/watch?v=..." />
+            </div>
+            <div>
+              <label>Sistem Gereksinimleri (kısa)</label>
+              <textarea id="specs" rows="3" placeholder="CPU, RAM, GPU, Disk..."></textarea>
+            </div>
+            <div>
+              <label>İndirme / Kaynak Linki</label>
+              <input id="download" placeholder="https://developer-site.com/download" required />
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn btn-primary" type="submit">Ekle</button>
+              <button class="btn btn-ghost" type="button" id="previewSample">Örnek Doldur</button>
+            </div>
+            <div style="margin-top:8px" class="small">Ekleme sonrası kart listede görünür. Kart üzerindeki "Düzenle" ve "Sil" ile güncelleme yapabilirsin.</div>
+          </form>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="card">
+          <h4>İçerik Yönetimi</h4>
+          <div style="display:grid;gap:8px;margin-top:8px">
+            <button class="btn btn-ghost" id="importJson">JSON içe aktar</button>
+            <input id="jsonFile" type="file" accept="application/json" style="display:none" />
+            <label class="small">JSON formatı: [{title,desc,image,video,specs,download} ...]</label>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer>
+      © <span id="year"></span> Deniz — Oyun verilerini yasal linklerle doldur.
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const STORAGE_KEY = 'oyun_kutuphane_data_v1';
+    let games = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
+
+    const gameList = document.getElementById('gameList');
+    const form = document.getElementById('gameForm');
+
+    function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(games)); render(); }
+
+    function render(){
+      gameList.innerHTML = '';
+      if(games.length===0){ gameList.innerHTML = '<div class="card muted">Henüz oyun yok. Sağ taraftan ekle veya JSON içe aktar.</div>'; return }
+      games.forEach((g, idx)=>{
+        const el = document.createElement('article'); el.className='card';
+        el.innerHTML = `
+          <div style=\"display:flex;gap:12px;align-items:flex-start\"> 
+            <div style=\"flex:0 0 200px\">${g.image?`<div class=\"thumb\" style=\"background-image:url('${g.image.replace(/'/g,"\'")}')\"></div>`:'<div class="thumb" style="display:flex;align-items:center;justify-content:center;color:var(--muted)">No Image</div>'}</div>
+            <div style=\"flex:1\"> 
+              <h3 class=\"title\">${escapeHtml(g.title)} <span class=\"small\">${g.year?`(${g.year})`:''}</span></h3>
+              <div class=\"muted\">${escapeHtml(g.desc)}</div>
+              <div class=\"meta\"> <div class=\"badge\">Sist. Req.</div> <div class=\"small\">${escapeHtml(g.specs||'Belirtilmemiş')}</div></div>
+              <div style=\"margin-top:8px;display:flex;gap:8px;flex-wrap:wrap\">
+                <a class=\"btn btn-ghost\" href=\"${escapeAttr(g.download)}\" target=\"_blank\" rel=\"noopener\">Kaynak / İndir</a>
+                <button class=\"btn btn-ghost\" onclick=\"preview(${idx})\">Önizle</button>
+                <button class=\"btn btn-ghost\" onclick=\"edit(${idx})\">Düzenle</button>
+                <button class=\"btn btn-ghost\" onclick=\"del(${idx})\">Sil</button>
+              </div>
+              ${g.video?`<div style=\"margin-top:10px\"><div class=\"video-wrap\">${embedVideo(g.video)}</div></div>`:''}
+            </div>
+          </div>
+        `;
+        gameList.appendChild(el);
+      })
+    }
+
+    function escapeHtml(s){ if(!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,"&#039;"); }
+    function escapeAttr(s){ if(!s) return '#'; return s.replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+
+    function embedVideo(url){
+      // basit Youtube ID yakalama
+      try{
+        const u = new URL(url);
+        if(u.hostname.includes('youtube')||u.hostname.includes('youtu.be')){
+          let id = '';
+          if(u.hostname.includes('youtu.be')) id = u.pathname.slice(1);
+          else id = u.searchParams.get('v');
+          if(!id) return '';
+          return `<iframe src=\"https://www.youtube.com/embed/${id}\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>`;
+        }
+      }catch(e){/*ignore*/}
+      // fallback: iframe with url
+      return `<iframe src=\"${url}\" frameborder=\"0\" allowfullscreen></iframe>`;
+    }
+
+    function del(i){ if(!confirm('Emin misin?')) return; games.splice(i,1); save(); }
+
+    function preview(i){ const g = games[i]; if(!g) return; const w = window.open('','_blank','noopener'); const html = `<html><head><meta charset=\"utf-8\"><title>${escapeHtml(g.title)}</title></head><body style=\"font-family:Inter,Arial;padding:18px;background:#071021;color:#fff\">${g.image?`<img src=\"${escapeAttr(g.image)}\" style=\"max-width:100%;border-radius:8px;margin-bottom:12px\"/>`:''}<h1>${escapeHtml(g.title)}</h1><p style=\"color:#9fb0c7\">${escapeHtml(g.desc)}</p><h3>Sistem Gereksinimleri</h3><pre>${escapeHtml(g.specs||'Belirtilmemiş')}</pre><p><a href=\"${escapeAttr(g.download)}\" target=\"_blank\">İndir / Kaynak</a></p>${g.video?`<div style=\"margin-top:12px\">${embedVideo(g.video)}</div>`:''}</body></html>`; w.document.open(); w.document.write(html); w.document.close(); }
+
+    function edit(i){ const g = games[i]; if(!g) return; document.getElementById('title').value=g.title; document.getElementById('desc').value=g.desc; document.getElementById('image').value=g.image||''; document.getElementById('video').value=g.video||''; document.getElementById('specs').value=g.specs||''; document.getElementById('download').value=g.download; // remove old then save on submit
+      games.splice(i,1); save(); window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    form.addEventListener('submit', e=>{
+      e.preventDefault();
+      const obj = {
+        title: document.getElementById('title').value.trim(),
+        desc: document.getElementById('desc').value.trim(),
+        image: document.getElementById('image').value.trim(),
+        video: document.getElementById('video').value.trim(),
+        specs: document.getElementById('specs').value.trim(),
+        download: document.getElementById('download').value.trim(),
+        year: new Date().getFullYear()
+      };
+      // basit validation
+      if(!obj.title||!obj.download){ alert('Başlık ve indirme linki gerekli.'); return }
+      // güvenlik notu: kullanıcı linklerinin yasal olup olmadığını kontrol etmelisin
+      games.unshift(obj); save(); form.reset();
+    });
+
+    document.getElementById('previewSample').addEventListener('click', ()=>{
+      document.getElementById('title').value='SuperTuxKart (Örnek)';
+      document.getElementById('desc').value='Açık kaynak kart yarışı, çok oyunculu ve eğlenceli.';
+      document.getElementById('image').value='https://supertuxkart.net/images/thumb/6/6f/1.4_banner.jpg/800px-1.4_banner.jpg';
+      document.getElementById('video').value='https://www.youtube.com/watch?v=example';
+      document.getElementById('specs').value='CPU: 2.5GHz, RAM: 4GB, GPU: OpenGL 3.0 compatible, Disk: 2GB';
+      document.getElementById('download').value='https://supertuxkart.net/Download';
+    });
+
+    document.getElementById('exportJson').addEventListener('click', ()=>{
+      const blob = new Blob([JSON.stringify(games, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='games.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('importJson').addEventListener('click', ()=>{ document.getElementById('jsonFile').click(); });
+    document.getElementById('jsonFile').addEventListener('change', e=>{
+      const f = e.target.files[0]; if(!f) return; const reader = new FileReader(); reader.onload = ()=>{ try{ const data = JSON.parse(reader.result); if(Array.isArray(data)){ games = data.concat(games); save(); alert('İçe aktarıldı.'); } else alert('Geçerli JSON değil (array bekleniyor).') }catch(err){ alert('JSON parse hatası') } }; reader.readAsText(f);
+    });
+
+    document.getElementById('clearAll').addEventListener('click', ()=>{ if(confirm('Tüm oyunları silmek istediğine emin misin?')){ games=[]; save(); } });
+
+    document.getElementById('exportHtml').addEventListener('click', ()=>{
+      const html = '<!doctype html>' + document.documentElement.outerHTML; const blob = new Blob([html], {type:'text/html'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='index.html'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    // helpers used inside template
+    function embedVideo(url){
+      try{ const u = new URL(url); if(u.hostname.includes('youtube')||u.hostname.includes('youtu.be')){ let id=''; if(u.hostname.includes('youtu.be')) id = u.pathname.slice(1); else id = u.searchParams.get('v'); if(!id) return ''; return `<iframe src=\"https://www.youtube.com/embed/${id}\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>`; } }catch(e){}
+      return `<iframe src=\"${url}\" frameborder=\"0\" allowfullscreen></iframe>`;
+    }
+
+    // page init
+    render();
+  </script>
+</body>
+</html>
