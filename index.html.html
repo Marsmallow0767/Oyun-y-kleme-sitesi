@@ -8,13 +8,13 @@
 <style>
 body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f0f0f0; }
 header { background:#41EFFF; padding:20px; text-align:center; color:#fff; }
-main { display:flex; }
+main { display:flex; flex-wrap:wrap; }
 #game-list { flex:3; padding:20px; display:grid; grid-template-columns: repeat(auto-fill,minmax(300px,1fr)); gap:20px;}
 .game-card { background:#fff; padding:10px; border-radius:10px; box-shadow:0 0 5px rgba(0,0,0,0.2);}
 .game-card img { width:100%; border-radius:10px;}
 #admin { flex:1; padding:20px; background:#e0e0e0;}
 #admin input, #admin textarea { width:100%; margin-bottom:10px; padding:5px;}
-#admin button { width:100%; padding:10px; background:#41EFFF; border:none; color:white; cursor:pointer; border-radius:5px;}
+#admin button { width:100%; padding:10px; background:#41EFFF; border:none; color:white; cursor:pointer; border-radius:5px; margin-bottom:5px;}
 iframe { width:100%; height:180px; border:none; }
 </style>
 </head>
@@ -36,15 +36,17 @@ iframe { width:100%; height:180px; border:none; }
 <button onclick="addGame()">Ekle</button>
 </div>
 </main>
+
 <script>
 // Admin kontrolü
 const urlParams = new URLSearchParams(window.location.search);
 const isAdmin = urlParams.get('admin') === 'true';
-if(!isAdmin){
-  document.getElementById('admin').style.display = 'none';
+const adminDiv = document.getElementById('admin');
+if(!isAdmin && adminDiv){
+  adminDiv.style.display = 'none';
 }
 
-// Başlangıçta herkese görünen oyunlar
+// Başlangıç oyunları (herkes görebilir)
 let games = [
   {
     title: "SuperTuxKart",
@@ -64,7 +66,7 @@ let games = [
   }
 ];
 
-// Admin moddaysa localStorage’dan eklenen oyunlar dahil edilir
+// Admin moddaysa localStorage'dan eklenen oyunları dahil et
 if(isAdmin){
   const storedGames = JSON.parse(localStorage.getItem('games') || '[]');
   games = [...games, ...storedGames];
@@ -91,7 +93,7 @@ function displayGames() {
   });
 }
 
-// Oyun ekleme fonksiyonu (admin)
+// Oyun ekleme fonksiyonu
 function addGame() {
   if(!isAdmin) return;
   const title = document.getElementById('title').value;
@@ -112,6 +114,7 @@ function addGame() {
   localStorage.setItem('games', JSON.stringify(storedGames));
 
   displayGames();
+  // Formu temizle
   document.getElementById('title').value = '';
   document.getElementById('description').value = '';
   document.getElementById('image').value = '';
@@ -142,8 +145,10 @@ function deleteGame(index) {
   displayGames();
 }
 
+// Sayfa yüklendiğinde oyunları göster
 displayGames();
 </script>
 </body>
 </html>
+
 
