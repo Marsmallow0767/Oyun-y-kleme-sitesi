@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Ücretsiz oyun indirme sitesi. Sistem gereksinimleri, videolar ve indirme linkleriyle.">
+<title>Oyun-y-kleme Sitesi</title>
+<style>
+body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f0f0f0; }
+header { background:#41EFFF; padding:20px; text-align:center; color:#fff; }
+main { display:flex; flex-wrap:wrap; }
+#game-list { flex:3; padding:20px; display:grid; grid-template-columns: repeat(auto-fill,minmax(300px,1fr)); gap:20px;}
+.game-card { background:#fff; padding:10px; border-radius:10px; box-shadow:0 0 5px rgba(0,0,0,0.2);}
+.game-card img { width:100%; border-radius:10px;}
+#admin { flex:1; padding:20px; background:#e0e0e0;}
+#admin input, #admin textarea { width:100%; margin-bottom:10px; padding:5px;}
+#admin button { width:100%; padding:10px; background:#41EFFF; border:none; color:white; cursor:pointer; border-radius:5px; margin-bottom:5px;}
+iframe { width:100%; height:180px; border:none; }
+</style>
+</head>
+<body>
+<header>
+<h1>Oyun-y-kleme Sitesi</h1>
+<p>Ücretsiz Oyun indirme sitesi</p>
+</header>
+<main>
+<div id="game-list"></div>
+
+<!-- Admin paneli -->
+<div id="admin">
+<h2>Yeni Oyun Ekle</h2>
+<input id="title" placeholder="Oyun Başlığı">
+<textarea id="description" placeholder="Kısa Açıklama"></textarea>
+<input id="image" placeholder="Kapak URL">
+<input id="video" placeholder="Video URL (YouTube)">
+<textarea id="requirements" placeholder="Sistem Gereksinimleri"></textarea>
+<input id="download" placeholder="İndirme / Kaynak Linki">
+<button onclick="addGame()">Ekle</button>
+</div>
+</main>
+
+<script>
+// Admin kontrolü
+const urlParams = new URLSearchParams(window.location.search);
+const isAdmin = urlParams.get('admin') === 'true';
+const adminDiv = document.getElementById('admin');
+if(!isAdmin && adminDiv) adminDiv.style.display = 'none';
+
+// Başlangıç oyunları
+let games = [
+  {
+    title: "SuperTuxKart",
+    description: "Açık kaynak kart yarışı, çok oyunculu.",
+    image: "https://supertuxkart.net/images/thumb/6/6f/1.4_banner.jpg/800px-1.4_banner.jpg",
+    video: "https://www.youtube.com/watch?v=example",
+    requirements: "CPU: 2.5GHz, RAM: 4GB, GPU: OpenGL 3.0, Disk: 2GB",
+    download: "https://supertuxkart.net/Download"
+  },
+  {
+    title: "0 A.D.",
+    description: "Açık kaynak strateji oyunu.",
+    image: "https://play0ad.com/media/images/screenshots/0ad-screenshot.jpg",
+    video: "",
+    requirements: "CPU: 2.0GHz, RAM: 2GB, GPU: OpenGL 2.0",
+    download: "https://play0ad.com/download"
+  }
+];
+
+// Admin moddaysa localStorage'dan eklenen oyunları dahil et
+if(isAdmin){
+  const storedGames = JSON.parse(localStorage.getItem('games') || '[]');
+  games = [...games, ...storedGames];
+}
+
+// Oyunları göster
+function displayGames() {
+  const list = document.getElementById('game-list');
+  list.innerHTML = '';
+  games.forEach((game, index) => {
+    const card = document.createElement('div');
+    card.className = 'game-card';
+    card.innerHTML = `
+      <h3>${game.title}</h3>
+      <img src="${game.image}" alt="${game.title}">
+      <p>${game.description}</p>
+      <p><strong>Sistem Gereksinimleri:</strong> ${game.requirements}</p>
+      ${game.video ? `<iframe src="${game.video.replace("watch?v=", "embed/")}" allowfullscreen></iframe>` : ''}
+      <p><a href="${game.download}" target="_blank">İndir / Kaynak</a></p>
+      ${isAdmin ? `<button onclick="editGame(${index})">Düzenle</button>
+      <button onclick="deleteGame(${index})">Sil</button>` : ''}
+    `;
+    list.appendChild(card);
+  });
+}
+
+// Oyun ekleme
+function addGame() {
+  if(!isAdmin) return;
+  const title = document.getElementById('title').value;
+  const description = document.getElementById('description').value;
+  const image = document.getElementById('image').value;
+  const video = document.getElementById('video').value;
+  const requirements = document.getElementById('requirements').value;
+  const download = document.getElementById('download').value;
+
+  if(!title) return alert('Oyun başlığı gerekli!');
+  
+  const newGame = {title, description, image, video, requirements, download};
+  games.push(newGame);
+
+  // Admin eklemelerini localStorage'a kaydet
+  let storedGames = JSON.parse(localStorage.getItem('games') || '[]');
+  storedGames.push(newGame);
+  localStorage.setItem('games', JSON.stringify(storedGames));
+
+  displayGames();
+  document.getElementById('title').value = '';
+  document.getElementById('description').value = '';
+  document.getElementById('image').value = '';
+  document.getElementById('video').value = '';
+  document.getElementById('requirements').value = '';
+  document.getElementById('download').value = '';
+}
+
+// Düzenleme ve silme
+function editGame(index) {
+  if(!isAdmin) return;
+  const game = games[index];
+  document.getElementById('title').value = game.title;
+  document.getElementById('description').value = game.description;
+  document.getElementById('image').value = game.image;
+  document.getElementById('video').value = game.video;
+  document.getElementById('requirements').value = game.requirements;
+  document.getElementById('download').value = game.download;
+  deleteGame(index);
+}
+
+function deleteGame(index) {
+  if(!isAdmin) return;
+  games.splice(index,1);
+  let storedGames = JSON.parse(localStorage.getItem('games') || '[]');
+  storedGames.splice(index,1);
+  localStorage.setItem('games', JSON.stringify(storedGames));
+  displayGames();
+}
+
+// Sayfa yüklendiğinde oyunları göster
+displayGames();
+</script>
+</body>
+</html>
