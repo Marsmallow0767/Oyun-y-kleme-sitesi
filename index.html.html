@@ -40,8 +40,11 @@ iframe { width:100%; height:180px; border:none; }
 // Admin kontrolü
 const urlParams = new URLSearchParams(window.location.search);
 const isAdmin = urlParams.get('admin') === 'true';
+if(!isAdmin){
+  document.getElementById('admin').style.display = 'none';
+}
 
-// Başlangıçta sitenin herkese görünen oyunları
+// Başlangıçta herkese görünen oyunlar
 let games = [
   {
     title: "SuperTuxKart",
@@ -61,14 +64,10 @@ let games = [
   }
 ];
 
-// Admin moddaysa eklenen oyunlar localStorage'dan eklenir
+// Admin moddaysa localStorage’dan eklenen oyunlar dahil edilir
 if(isAdmin){
   const storedGames = JSON.parse(localStorage.getItem('games') || '[]');
   games = [...games, ...storedGames];
-} else {
-  // Ziyaretçiler için paneli gizle
-  const adminDiv = document.getElementById('admin');
-  if(adminDiv) adminDiv.style.display = 'none';
 }
 
 // Oyunları gösterme fonksiyonu
@@ -92,7 +91,7 @@ function displayGames() {
   });
 }
 
-// Oyun ekleme fonksiyonu
+// Oyun ekleme fonksiyonu (admin)
 function addGame() {
   if(!isAdmin) return;
   const title = document.getElementById('title').value;
@@ -121,7 +120,7 @@ function addGame() {
   document.getElementById('download').value = '';
 }
 
-// Düzenleme fonksiyonu
+// Düzenleme ve silme (admin)
 function editGame(index) {
   if(!isAdmin) return;
   const game = games[index];
@@ -134,7 +133,6 @@ function editGame(index) {
   deleteGame(index);
 }
 
-// Silme fonksiyonu
 function deleteGame(index) {
   if(!isAdmin) return;
   games.splice(index,1);
@@ -148,3 +146,4 @@ displayGames();
 </script>
 </body>
 </html>
+
